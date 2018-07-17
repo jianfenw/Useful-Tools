@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from __future__ import print_function
 import os
 import sys
@@ -8,26 +6,30 @@ import copy
 import argparse
 
 
-
 # One simple method is to use the command line tools
 # find . -type f -exec wc  {} \; | awk '{print $1}'|xargs
 
 class LangCounter(object):
-	def __init__(self, input_lang=None):
+	def __init__(self, input_lang=None, input_stats_argv=None):
 		# self.stats_argv: 
 		# 'all' : total_lines, 'cmt' : comment_lines, 'code' : code_lines
 		self.lang = None
 		self.stats_argv = []
-		self.total_lines = 0
-		self.comment_lines = 0
-		self.code_lines = 0
+		self.counters = {'all':0, 'cmt':0, 'code':0}
 		if input_lang != None:
 			self.lang = copy.deepcopy(input_lang)
+		if input_stats_argv != None:
+			self.stats_argv = copy.deepcopy(input_stats_argv)
 		return
 
 	def __str__(self):
-
-		return
+		res_str = ""
+		for curr_stat in sorted(self.stats_argv):
+			if len(res_str):
+				res_str += "\n%s: %d lines of %s;" %(self.lang, self.counters[curr_stat], curr_stat)
+			else:
+				res_str += "%s: %d lines of %s;" %(self.lang, self.counters[curr_stat], curr_stat)
+		return res_str
 
 
 class CodeLineCounter(object):
@@ -55,35 +57,42 @@ class CodeLineCounter(object):
 			self.lang_argv = copy.deepcopy(lang_argv)
 			for lang in self.lang_argv:
 				self.extensions.append( self.lang_extension_links[lang] )
-
-		print("root: '%s', stats: %s, lang: %s" %(self.root_dir, str(self.stats_argv), str(lang_argv)))
 		return
 
 	def counter_process_main(self):
 		self.counter_init_counters()
+		target_files = None
+		for curr_lang in self.lang_argv:
+			curr_extension = self.lang_extension_links[curr_lang]
+			target_files = self.counter_get_files(self.root_dir, curr_extension)
+			#print(target_files)
 
-		target_files = []
-		for root, _, files in os.walk(self.root_dir):
-			#print(files)
-			for f in files:
-				fullpath = os.path.join(root, f)
-				for extension in self.extensions:
-					if fullpath.endswith(extension):
-						target_files.append( (fullpath, self.extension_lang_links[extension]) )
-
-		if len(target_files)==0:
-			print('No files found')
-			return
-
-		for file in target_files:
-			print('file: %s' %(file[0]))
-			self.counter_code_handler(file[0], file[1])
-
+			if len(target_files)==0:
+				print('No %s file found' %(curr_lang))
+				continue
+			else:
+				for file in target_files:
+					self.counter_code_handler(file, curr_lang)
+				#print('%s: %s' %(curr_lang, (self.counters[curr_lang]) ))
 		return
+
+	def counter_get_files(self, t_dir, extension):
+		target_files = []
+		files = sorted(os.listdir(t_dir))
+		for file in files:
+			complete_filename = os.path.join(t_dir, file)
+			if os.path.isdir(complete_filename):
+				# this is a dir
+				target_files += self.counter_get_files(complete_filename, extension)
+			else:
+				# this is a file
+				if complete_filename.endswith(extension):
+					target_files.append(complete_filename)
+		return target_files
 
 	def counter_init_counters(self):
 		for lang in self.lang_argv:
-			self.counters[lang] = 0
+			self.counters[lang] = LangCounter(lang, self.stats_argv)
 		return
 
 	def counter_code_handler(self, filename, lang):
@@ -102,8 +111,10 @@ class CodeLineCounter(object):
 				else:
 					code_line_count += 1
 
-		self.counters[lang] += total_line_count
-		print(total_line_count, blank_line_count, comment_line_count, code_line_count)
+		lang_counter = self.counters[lang]
+		lang_counter.counters['cmt'] += comment_line_count
+		lang_counter.counters['code'] += code_line_count
+		lang_counter.counters['all'] += total_line_count
 		return
 
 
@@ -116,8 +127,9 @@ def counter_main():
 
 	#print(args)
 	#print(args.lang, args.path)
-	counter = CodeLineCounter(args.path, args.stats, args.lang)
-	counter.counter_process_main()
+	handler = CodeLineCounter(args.path, args.stats, args.lang)
+	handler.counter_process_main()
+	print(handler.counters['python'])
 	return
 
 

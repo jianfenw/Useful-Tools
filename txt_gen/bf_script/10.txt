@@ -1,0 +1,35 @@
+
+ucli
+pm
+port-add 21/0 100G RS
+port-add 27/0 100G RS
+port-enb 21/0
+port-enb 27/0
+an-set 21/0 1
+an-set 27/0 1
+end
+
+pd-p4-acl-1
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.1 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 1
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.2 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 2
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.3 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 3
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.4 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 4
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.5 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 5
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.6 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 6
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.7 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 7
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.8 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 8
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 10.0.0.9 ipv4_srcAddr_mask 255.255.255.255 ipv4_dstAddr 10.0.0.1 ipv4_dstAddr_mask 255.255.255.255 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 9
+
+pd acl_1_1_acl_table add_entry acl_acl_table_hit ipv4_srcAddr 0.0.0.0 ipv4_srcAddr_mask 0.0.0.0 ipv4_dstAddr 0.0.0.0 ipv4_dstAddr_mask 0.0.0.0 tcp_srcPort 0 tcp_srcPort_mask 0 tcp_dstPort 0 tcp_dstPort_mask 0 priority 1 entry_hdl 10
+
+pd ipv4forward_1_2_ipv4_forward_table add_entry ipv4forward_ipv4_forward_table_hit ipv4_dstAddr 10.0.1.2 ipv4_dstAddr_prefix_length 32 action_dstAddr 0x123456123456 action_port 168 entry_hdl 1
+exit
+

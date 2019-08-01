@@ -1,81 +1,125 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
-def lineplot_2(x1_data, y1_data, x2_data, y2_data, x_label="", y_label="", title=""):
-	# Create the plot object 
-	_, ax = plt.subplots()
-	# Plot the best fit line, set the linewidth (lw), color and transparency (alpha) of the line 
-	ax.plot(x1_data, y1_data, lw = 1.5, color = 'b', alpha = 1)
-	ax.plot(x2_data, y2_data, lw = 1.5, color = 'r', alpha = 1)
-	# Label the axes and provide a title 
-	ax.set_title(title) 
-	ax.set_xlabel(x_label)
-	ax.set_ylabel(y_label)
-	plt.grid(True) 
+
+def lineplot_2(x1_data,
+               y1_data,
+               x2_data,
+               y2_data,
+               x_label="",
+               y_label="",
+               title=""):
+    # Create the plot object
+    _, ax = plt.subplots()
+    # Plot the best fit line, set the linewidth (lw), color and transparency (alpha) of the line
+    ax.plot(x1_data, y1_data, lw=1.5, color='b', alpha=1)
+    ax.plot(x2_data, y2_data, lw=1.5, color='r', alpha=1)
+    # Label the axes and provide a title
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.grid(True)
 
 
 def lineplot(x_data, y_data, x_label="", y_label="", title=""):
-	# Create the plot object 
-	_, ax = plt.subplots()
-	# Plot the best fit line, set the linewidth (lw), color and transparency (alpha) of the line 
-	ax.plot(x_data, y_data, lw = 1.5, color = 'b', alpha = 1)
-	# Label the axes and provide a title 
-	ax.set_title(title) 
-	ax.set_xlabel(x_label) 
-	ax.set_ylabel(y_label)
-	plt.grid(True) 
+    # Create the plot object
+    _, ax = plt.subplots()
+    # Plot the best fit line, set the linewidth (lw), color and transparency (alpha) of the line
+    ax.plot(x_data, y_data, lw=1.5, color='b', alpha=1)
+    # Label the axes and provide a title
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.grid(True)
 
 
-def scatterplot(x_data, y_data, x_label="", y_label="", title="", color = "b", yscale_log=False):
-	# Create the plot object 
-	_, ax = plt.subplots()
-	# Plot the data, set the size (s), color and transparency (alpha)
-	ax.scatter(x_data, y_data, s = 10, marker='x', color = color, alpha = 0.75)
-	if yscale_log == True:
-		ax.set_yscale('log')
-	ax.set_title(title) 
-	ax.set_xlabel(x_label) 
-	ax.set_ylabel(y_label)
-	plt.grid(True) 
-
-def scatter_curve_plot(x_data, y_data, x_label="", y_label="", title="", color="b", yscale_log=False):
-	# Create the plot object 
-	_, ax = plt.subplots()
-	# Plot the data, set the size (s), color and transparency (alpha)
-	ax.scatter(x_data, y_data, s = 10, marker='x', color = color, alpha = 0.75)
-	ax.plot(x_data, y_data, lw = 1.0, color = 'b', alpha = 1)
-	if yscale_log == True:
-		ax.set_yscale('log')
-	ax.set_title(title) 
-	ax.set_xlabel(x_label) 
-	ax.set_ylabel(y_label)
-	plt.grid(True) 
+def scatterplot(x_data,
+                y_data,
+                x_label="",
+                y_label="",
+                title="",
+                color="b",
+                yscale_log=False):
+    # Create the plot object
+    _, ax = plt.subplots()
+    # Plot the data, set the size (s), color and transparency (alpha)
+    ax.scatter(x_data, y_data, s=10, marker='x', color=color, alpha=0.75)
+    if yscale_log == True:
+        ax.set_yscale('log')
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.grid(True)
 
 
-def bar_plot(x_data, y_data, n_chains=4, n_algorithms=7, x_label='', y_label='', chain_name = [], algorithm_name=[], title='', grid_flag=False, y_scale=100):
-	# create the plot object
-	_, ax = plt.subplots()
-	colors = ['b', 'r', 'g', 'm', 'c', 'y', 'grey']
-	# plot the data
-	n_groups = n_chains
-	n_algorithms = n_algorithms
-	bar_width = 0.2
-	index = np.arange(n_groups)
-	bar_legend = []
-	for i in range(n_algorithms):
-		tmp_bar = ax.bar(index + bar_width/2*i, y_data[i], bar_width/2, color=colors[i], label=algorithm_name[i])
-		bar_legend.append(tmp_bar)
-	ax.set_title(title) 
-	ax.legend(bar_legend, algorithm_name)
-	plt.xticks(index -0.2 + 2*bar_width, chain_name)
-	ax.set_xlabel(x_label) 
-	ax.set_ylabel(y_label)
-	plt.ylim(0, y_scale*1.1)
-	plt.grid(grid_flag)
-	return
+def scatter_curve_plot(x_data,
+                       y_data,
+                       x_label="",
+                       y_label="",
+                       title="",
+                       color="b",
+                       yscale_log=False):
+    # Create the plot object
+    _, ax = plt.subplots()
+    # Plot the data, set the size (s), color and transparency (alpha)
+    ax.scatter(x_data, y_data, s=10, marker='x', color=color, alpha=0.75)
+    ax.plot(x_data, y_data, lw=1.0, color='b', alpha=1)
+    if yscale_log == True:
+        ax.set_yscale('log')
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.grid(True)
 
 
+def bar_plot(x_data,
+             y_data,
+             n_chains=4,
+             n_algorithms=7,
+             x_label='',
+             y_label='',
+             chain_name=[],
+             algorithm_name=[],
+             title='',
+             grid_flag=False,
+             y_scale=100):
+    # create the plot object
+    _, ax = plt.subplots()
+    colors = ['b', 'r', 'g', 'm', 'c', 'y', 'grey']
+    # plot the data
+    n_groups = n_chains
+    n_algorithms = n_algorithms
+    bar_width = 0.2
+    index = np.arange(n_groups)
+    bar_legend = []
+    for i in range(n_algorithms):
+        tmp_bar = ax.bar(index + bar_width / 2 * i,
+                         y_data[i],
+                         bar_width / 2,
+                         color=colors[i],
+                         label=algorithm_name[i])
+        bar_legend.append(tmp_bar)
+    ax.set_title(title)
+    ax.legend(bar_legend, algorithm_name)
+    plt.xticks(index - 0.2 + 2 * bar_width, chain_name)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.ylim(0, y_scale * 1.1)
+    plt.grid(grid_flag)
+    return
+
+
+x = [1.804, 3.541, 3.704, 3.58, 3.932, 4.885, 6.52, 8.146, 10, 11.71]
+y = [i for i in range(1, 11)]
+x_label = 'Count of requests'
+y_label = 'Peak queueing delay level'
+figure_title = 'Mapping from the request count to the peak queueing delay'
+scatter_curve_plot(x, y, x_label, y_label, figure_title, 'b', False)
+plt.figure(1)
+plt.show()
 '''
 x=[(10+20*i) for i in range(13)] + [350, 450, 650, 850, 1000]
 bess_y=[25754.6, 25952.7, 20909.3, 21213.9, 19326.4, 15798.2, 15737.9, 14733.4, 13810.8, 12943.1, 12232.3, 11469.0, 10335.8, 8665.6, 7174.9, 5343.8, 4170.2, 3620.6]
@@ -98,14 +142,12 @@ fig2_title = 'Throughput: P4 NF Chain v.s. BESS NF Chain\n(200 Table Entries)'
 lineplot_2(x1,y1,x2,y2, x2_label, y2_label, fig2_title)
 plt.figure(2)
 '''
-
 '''
 acl_x = [1, 10, 20, 21, 22, 23, 25, 30, 50, 70, 90, 110, 130, 150, 200, 250, 350, 700]
 acl_y = [99.863, 190.390, 217.958, 224.159, 289.346, 332.360, 348.555, 361.306, 407.123, 455.393, 506.997, 591.972, 643.399, 696.194, 828.297, 959.281, 1223.477, 2141.982]
 scatter_curve_plot(acl_x, acl_y, '', '', 'Profile ACL: # of cycles ~ # of entries', 'r')
 plt.figure(1)
 '''
-
 '''
 chain_res = [[0.833, 0.084, 0.833, 0.02, 0.833], \
 	[0.833, 0.028, 0.833, 0.02, 0.833], \
@@ -209,7 +251,6 @@ bar_plot([], chain_res, n_chains, n_algorithms, 'NF chain index number', 'Throug
 plt.figure(5)
 
 '''
-
 '''
 # chain 1, 2, 3, 4
 chain_res = [[0.14, 0.833, 0.02, 0.833], \
@@ -232,7 +273,6 @@ chain_name = ['chain 1', 'chain 2', 'chain 3', 'chain 4']
 bar_plot([], chain_res, n_chains, n_algorithms, 'NF chain index number', 'Throughput (%)', chain_name, algorithm_name, 'Experiment on Chain [1, 2, 3, 4]', False, 160)
 plt.figure(1)
 '''
-
 '''
 # chain 4, 4, 4
 chain_res = [[100, 100, 100], \
@@ -250,7 +290,6 @@ chain_name = ['chain 4 (1)', 'chain 4 (2)', 'chain 4 (3)']
 bar_plot([], chain_res, n_chains, n_algorithms, 'NF chain index number', 'Throughput (%)', chain_name, algorithm_name, 'Experiment on 3x chain 4', False, 110)
 plt.figure(1)
 '''
-
 '''
 #test_throughput_list = [float(i)*10**9 for i in range(1,1001)]
 #res_cores = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 35, 35, 35, 35, 36, 36, 36, 36, 36, 37, 37, 37, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 42, 43, 43, 43, 43, 44, 44, 44, 44, 45, 45, 45, 45, 46, 46, 46, 46, 47, 47, 47, 47, 47, 48, 48, 48, 48, 49, 49, 49, 49, 50, 50, 50, 50, 51, 51, 51, 51, 52, 52, 52, 52, 53, 53, 53, 53, 54, 54, 54, 54, 55, 55, 55, 56, 56, 56, 56, 57, 57, 57, 57, 58, 58, 58, 58, 59, 59, 59, 59, 60, 60, 60, 61, 61, 61, 61, 62, 62, 62, 62, 63, 63, 63, 64, 64, 64, 64, 65, 65, 65, 65, 66, 66, 66, 67, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 70, 70, 71, 71, 71, 72, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 79, 79, 80, 80, 80, 81, 81, 81, 82, 82, 82, 83, 83, 83, 84, 84, 84, 85, 85, 85, 86, 86, 86, 87, 87, 87, 88, 88, 88, 89, 89, 89, 90, 90, 90, 91, 91, 91, 92, 92, 92, 93, 93, 93, 94, 94, 94, 95, 95, 95, 96, 96, 97, 97, 97, 98, 98, 98, 99, 99, 99, 100, 100, 100, 101, 101, 102, 102, 102, 103, 103, 103, 104, 104, 105, 105, 105, 106, 106, 106, 107, 107, 108, 108, 108, 109, 109, 110, 110, 110, 111, 111, 111, 112, 112, 113, 113, 113, 114, 114, 115, 115, 116, 116, 116, 117, 117, 118, 118, 118, 119, 119, 120, 120, 120, 121, 121, 122, 122, 123, 123, 123, 124, 124, 125, 125, 126, 126, 126, 127, 127, 128, 128, 129, 129, 130, 130, 130, 131, 131, 132, 132, 133, 133, 134, 134, 134, 135, 135, 136, 136, 137, 137, 138, 138, 139, 139, 140, 140, 141, 141, 141, 142, 142, 143, 143, 144, 144, 145, 145, 146, 146, 147, 147, 148, 148, 149, 149, 150, 150, 151, 151, 152, 152, 153, 153, 154, 154, 155, 155, 156, 157, 157, 158, 158, 159, 159, 160, 160, 161, 161, 162, 162, 163, 163, 164, 165, 165, 166, 166, 167, 167, 168, 168, 169, 170, 170, 171, 171, 172, 172, 173, 174, 174, 175, 175, 176, 176, 177, 178, 178, 179, 179, 180, 181, 181, 182, 182, 183, 184, 184, 185, 185, 186, 187, 187, 188, 189, 189, 190, 190, 191, 192, 192, 193, 194, 194, 195, 196, 196, 197, 198, 198, 199, 200, 200, 201, 202, 202, 203, 204, 204, 205, 206, 206, 207, 208, 208, 209, 210, 211, 211, 212, 213, 213, 214, 215, 215, 216, 217, 218, 218, 219, 220, 221, 221, 222, 223, 224, 224, 225, 226, 227, 227, 228, 229, 230, 230, 231, 232, 233, 234, 234, 235, 236, 237, 238, 238, 239, 240, 241, 242, 242, 243, 244, 245, 246, 247, 247, 248, 249, 250, 251, 252, 253, 253, 254, 255, 256, 257, 258, 259, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 317, 318, 319, 320, 321, 322, 324, 325, 326, 327, 328, 329, 331, 332, 333, 334, 335, 337, 338, 339, 340, 342, 343, 344, 345, 347, 348, 349, 350, 352, 353, 354, 356, 357, 358, 360, 361, 362, 364, 365, 366, 368, 369, 370, 372, 373, 375, 376, 378, 379, 380, 382, 383, 385, 386, 388, 389, 391, 392, 394, 395, 397, 398, 400, 401, 403, 404, 406, 408, 409, 411, 412, 414, 415, 417, 419, 420, 422, 424, 425, 427, 429, 430, 432, 434, 436, 437, 439, 441, 443, 444, 446, 448, 450, 452, 453, 455, 457, 459, 461, 463, 465, 467, 468, 470, 472, 474, 476, 478, 480, 482, 484, 486, 488, 490, 492, 494, 496, 499, 501, 503, 505, 507, 509, 511, 514, 516, 518, 520, 523, 525, 527, 529, 532, 534, 536, 539, 541, 543, 546, 548, 551, 553, 555, 558, 560, 563, 565, 568, 571, 573, 576, 578, 581, 584, 586, 589, 592, 594, 597, 600, 603, 606, 608, 611, 614, 617, 620, 623, 626, 629, 632, 635, 638, 641, 644, 647, 650, 653, 656, 660, 663, 666, 669, 673, 676, 679, 683, 686, 690, 693, 696, 700, 703, 707, 711, 714, 718, 722, 725, 729, 733, 737, 740, 744, 748, 752, 756, 760, 764, 768, 772, 777, 781, 785, 789, 793, 798, 802, 807, 811, 815, 820, 825, 829, 834, 839, 843, 848, 853, 858, 863, 868, 873, 878, 883, 888, 893, 898, 904, 909, 915, 920, 925]
@@ -262,7 +301,6 @@ while len(res_cores) < len(test_throughput_list):
 scatter_curve_plot(test_throughput_list, res_cores, '', '', '', 'r')
 plt.figure(1)
 '''
-
 '''
 N = [1,2,4,8,16]
 func = [2, 2.2, 2.4, 3.2, 3.2]
@@ -276,7 +314,3 @@ scatter_curve_plot(N, sigma, 'N (# of cores)', 'f(N) * N', 'f(N)*N ~ N', 'r')
 
 plt.show()
 '''
-
-
-
-

@@ -17,6 +17,8 @@ class JsonReader(object):
 
     def print_data(self):
         for index, (key, val) in enumerate(self.data_cache_.items()):
+            if index == 0:
+                print("Type: key=", type(key), ", val=", type(val))
             print("ln %d: key=" % (index), key, ", val=",
                   self.data_cache_[key])
 

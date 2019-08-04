@@ -38,16 +38,16 @@ class LemurOpenFlowController(app_manager.RyuApp):
         )
         if ev.enter:
             # flow table
-            self.install_match_vlan(ev.dp)
-            self.install_match_vlan_modify_vlan(ev.dp)
+            #self.install_match_vlan(ev.dp)
+            #self.install_match_vlan_modify_vlan(ev.dp)
             #self.install_l2forwarding_rule(ev.dp)
             self.install_unicast_rule(ev.dp)
-            self.install_acl_rule(ev.dp)
+            #self.install_acl_rule(ev.dp)
             #self.install_pop_egress_vlan(ev.dp)
 
             # group table
-            self.install_modify_vlan(ev.dp)
-            self.install_untag_vlan(ev.dp)
+            #self.install_modify_vlan(ev.dp)
+            #self.install_untag_vlan(ev.dp)
 
     def install_rule_example(self, dp):
         ofp = dp.ofproto
@@ -94,11 +94,17 @@ class LemurOpenFlowController(app_manager.RyuApp):
         fields = {}
         #fields['eth_type'] = 0x8000
         fields['eth_type'] = 0x8100
-        fields['vlan_vid'] = (0x1001, 0x1fff)
+        fields['vlan_vid'] = (0x1002, 0x1fff)
         match = ofp_parser.OFPMatch()
         instructions = []
+        """
         instructions.append(
             ofp_parser.OFPInstructionActions(ofp.OFPIT_CLEAR_ACTIONS, []))
+        """
+        actions = []
+        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0005))
+        instructions.append(
+            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
         flow_mod = ofp_parser.OFPFlowMod(dp,
                                          cookie=0,
                                          cookie_mask=0,
@@ -115,21 +121,24 @@ class LemurOpenFlowController(app_manager.RyuApp):
         ofp_parser = dp.ofproto_parser
 
         fields = {}
-        #fields['eth_type'] = 0x8100
-        #fields['vlan_vid'] = (0x1001, 0x1fff)
-        fields['eth_dst'] = ('12:ff:ff:ff:ff:ff', 'ff:ff:ff:ff:ff:ff')
+        fields['eth_type'] = 0x0800
+        fields['vlan_vid'] = (0x1001, 0x1fff)
+        fields['eth_dst'] = ('00:01:02:03:04:05', 'ff:ff:ff:ff:ff:ff')
         match = ofp_parser.OFPMatch(**fields)
         instructions = []
-        actions = []
-        actions.append(ofp_parser.OFPActionOutput(ofp.OFPP_NORMAL, 7))
-        instructions.append(
-            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        #actions = []
+        #actions.append(ofp_parser.OFPActionOutput(ofp.OFPP_NORMAL, 7))
+        #instructions.append(
+        #    ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        instructions.append(ofp_parser.OFPInstructionGotoTable(30))
         flow_mod = ofp_parser.OFPFlowMod(dp,
                                          cookie=0,
                                          cookie_mask=0,
                                          table_id=20,
                                          command=ofp.OFPFC_ADD,
                                          priority=1,
+                                         out_port=ofp.OFPP_ANY,
+                                         out_group=ofp.OFPG_ANY,
                                          match=match,
                                          instructions=instructions)
         dp.send_msg(flow_mod)
@@ -142,15 +151,17 @@ class LemurOpenFlowController(app_manager.RyuApp):
         fields = {}
         fields['eth_type'] = 0x0800
         #fields['vlan_vid'] = (0x1001, 0x1fff)
-        fields['ipv4_dst'] = ('10.0.1.2', 24)
+        fields['ipv4_dst'] = '10.0.1.3'
         match = ofp_parser.OFPMatch(**fields)
 
         # Add instructions
         instructions = []
+        """
         actions = []
-        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0005))
+        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0006))
         instructions.append(
             ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        """
         instructions.append(ofp_parser.OFPInstructionGotoTable(60))
         flow_mod = ofp_parser.OFPFlowMod(dp,
                                          cookie=0,
@@ -158,6 +169,8 @@ class LemurOpenFlowController(app_manager.RyuApp):
                                          table_id=30,
                                          command=ofp.OFPFC_ADD,
                                          priority=1,
+                                         out_port=ofp.OFPP_ANY,
+                                         out_group=ofp.OFPG_ANY,
                                          match=match,
                                          instructions=instructions)
         dp.send_msg(flow_mod)

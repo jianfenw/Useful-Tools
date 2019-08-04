@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 
 
@@ -29,7 +29,22 @@ def line_fit_main(x, y, title, x_label, y_label):
     plt.grid(True)
 
 
+def bar_plot(title):
+    _, ax = plt.subplots()
+
+    objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
+    y_pos = np.asarray([1,3,6,8,10, 12])
+    performance = [10,8,6,4,2,1]
+
+    ax.bar(y_pos, performance, align='center', alpha=0.5)
+    ax.set_xticks(y_pos, objects)
+    ax.set_ylabel('Usage')
+    ax.set_title(title)
+    plt.grid(True)
+
+
 if __name__ == '__main__':
+    """
     # 2g
     x_2g = np.asarray(
         [1.804, 3.541, 3.704, 3.58, 3.932, 4.885, 6.52, 8.146, 10, 11.71])
@@ -55,5 +70,8 @@ if __name__ == '__main__':
 
     figure_title_4g = 'Mapping from the request count to the peak queueing delay (4G)'
     line_fit_main(x_4g, y_4g, figure_title_4g, x_label, y_label)
+    """
 
+    bar_plot('Programming language usage')
+    
     plt.show()

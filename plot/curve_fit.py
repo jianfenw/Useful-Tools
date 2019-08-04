@@ -118,8 +118,8 @@ x_label = 'Count of requests'
 y_label = 'Peak queueing delay level'
 figure_title = 'Mapping from the request count to the peak queueing delay'
 scatter_curve_plot(x, y, x_label, y_label, figure_title, 'b', False)
-plt.figure(1)
 plt.show()
+
 '''
 x=[(10+20*i) for i in range(13)] + [350, 450, 650, 850, 1000]
 bess_y=[25754.6, 25952.7, 20909.3, 21213.9, 19326.4, 15798.2, 15737.9, 14733.4, 13810.8, 12943.1, 12232.3, 11469.0, 10335.8, 8665.6, 7174.9, 5343.8, 4170.2, 3620.6]

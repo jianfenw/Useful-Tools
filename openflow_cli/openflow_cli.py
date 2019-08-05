@@ -40,81 +40,15 @@ class LemurOpenFlowController(app_manager.RyuApp):
             # flow table
             #self.install_match_vlan(ev.dp)
             #self.install_match_vlan_modify_vlan(ev.dp)
-            #self.install_l2forwarding_rule(ev.dp)
+            self.install_l2forwarding_rule(ev.dp)
             self.install_unicast_rule(ev.dp)
+            self.install_bridging_rule(ev.dp)
             #self.install_acl_rule(ev.dp)
             #self.install_pop_egress_vlan(ev.dp)
 
             # group table
-            #self.install_modify_vlan(ev.dp)
+            self.install_modify_vlan(ev.dp)
             #self.install_untag_vlan(ev.dp)
-
-    def install_rule_example(self, dp):
-        ofp = dp.ofproto
-        ofp_parser = dp.ofproto_parser
-        # Table 10
-        fields = {}
-        fields['in_port'] = 1
-        fields['vlan_vid'] = (10, 8191)
-        matches = dp.ofproto_parser.OFPMatch(**fields)
-        """
-		# Table 0
-		fields = {}
-		fields['in_port'] = 1
-		fields['eth_dst'] = 'ff:ff:ff:ff:ff:ff'
-		matches = dp.ofproto_parser.OFPMatch(**fields)
-		"""
-        instructions = []
-        instructions.append(dp.ofproto_parser.OFPInstructionGotoTable(20))
-        flow_mod = dp.ofproto_parser.OFPFlowMod(dp,
-                                                cookie=0,
-                                                cookie_mask=0,
-                                                table_id=10,
-                                                command=dp.ofproto.OFPFC_ADD,
-                                                idle_timeout=0,
-                                                hard_timeout=0,
-                                                priority=0,
-                                                buffer_id=0,
-                                                out_port=dp.ofproto.OFPP_ANY,
-                                                out_group=dp.ofproto.OFPG_ANY,
-                                                flags=0,
-                                                match=matches,
-                                                instructions=instructions)
-
-        dp.send_msg(flow_mod)
-        DLOG.info("Message sent")
-        DLOG.info(
-            "==============================================================================="
-        )
-
-    def install_acl_rule(self, dp):
-        ofp = dp.ofproto
-        ofp_parser = dp.ofproto_parser
-
-        fields = {}
-        #fields['eth_type'] = 0x8000
-        fields['eth_type'] = 0x8100
-        fields['vlan_vid'] = (0x1002, 0x1fff)
-        match = ofp_parser.OFPMatch()
-        instructions = []
-        """
-        instructions.append(
-            ofp_parser.OFPInstructionActions(ofp.OFPIT_CLEAR_ACTIONS, []))
-        """
-        actions = []
-        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0005))
-        instructions.append(
-            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
-        flow_mod = ofp_parser.OFPFlowMod(dp,
-                                         cookie=0,
-                                         cookie_mask=0,
-                                         table_id=60,
-                                         command=ofp.OFPFC_ADD,
-                                         priority=1,
-                                         match=match,
-                                         instructions=instructions)
-        dp.send_msg(flow_mod)
-        DLOG.info("ACL sent")
 
     def install_l2forwarding_rule(self, dp):
         ofp = dp.ofproto
@@ -156,12 +90,12 @@ class LemurOpenFlowController(app_manager.RyuApp):
 
         # Add instructions
         instructions = []
-        """
         actions = []
-        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0006))
-        instructions.append(
-            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
-        """
+        # Sets up the group ID for L3 unicast group table.
+        #actions.append(ofp_parser.OFPActionGroup(group_id=0x20000001))
+        #instructions.append(
+        #    ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        # Sets up the next table to be ACL for further processing.
         instructions.append(ofp_parser.OFPInstructionGotoTable(60))
         flow_mod = ofp_parser.OFPFlowMod(dp,
                                          cookie=0,
@@ -175,6 +109,68 @@ class LemurOpenFlowController(app_manager.RyuApp):
                                          instructions=instructions)
         dp.send_msg(flow_mod)
         DLOG.info("IPv4Forward sent")
+
+    def install_bridging_rule(self, dp):
+        ofp = dp.ofproto
+        ofp_parser = dp.ofproto_parser
+        # Add matches
+        fields = {}
+        fields['vlan_vid'] = (0x1001, 0x1fff)
+        fields['eth_dst'] = ("00:00:00:00:00:05", "ff:ff:ff:ff:ff:ff")
+        match = ofp_parser.OFPMatch(**fields)
+
+        # Add instructions
+        instructions = []
+        actions = []
+        # Sets up the next table to be ACL for further processing.
+        instructions.append(ofp_parser.OFPInstructionGotoTable(60))
+        # Sets up the group ID for L2 interface group table.
+        # 0xb0000005
+        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0000005))
+        instructions.append(
+            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        #actions.append(ofp_parser.OFPActionOutput(ofp.OFPP_NORMAL, 7))
+        #instructions.append(
+        #    ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        flow_mod = ofp_parser.OFPFlowMod(dp,
+                                         cookie=0,
+                                         cookie_mask=0,
+                                         table_id=50,
+                                         command=ofp.OFPFC_ADD,
+                                         priority=1,
+                                         match=match,
+                                         instructions=instructions)
+        dp.send_msg(flow_mod)
+        DLOG.info("Bridging rule sent")
+
+    def install_acl_rule(self, dp):
+        ofp = dp.ofproto
+        ofp_parser = dp.ofproto_parser
+
+        fields = {}
+        #fields['eth_type'] = 0x0800
+        fields['eth_type'] = 0x8100
+        fields['vlan_vid'] = (0x1002, 0x1fff)
+        match = ofp_parser.OFPMatch()
+        instructions = []
+        """
+        instructions.append(
+            ofp_parser.OFPInstructionActions(ofp.OFPIT_CLEAR_ACTIONS, []))
+        """
+        actions = []
+        actions.append(ofp_parser.OFPActionGroup(group_id=0xb0005))
+        instructions.append(
+            ofp_parser.OFPInstructionActions(ofp.OFPIT_WRITE_ACTIONS, actions))
+        flow_mod = ofp_parser.OFPFlowMod(dp,
+                                         cookie=0,
+                                         cookie_mask=0,
+                                         table_id=60,
+                                         command=ofp.OFPFC_ADD,
+                                         priority=1,
+                                         match=match,
+                                         instructions=instructions)
+        dp.send_msg(flow_mod)
+        DLOG.info("ACL rule sent")
 
     def install_match_vlan(self, dp):
         ofp = dp.ofproto

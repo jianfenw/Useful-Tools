@@ -111,7 +111,24 @@ def bar_plot(x_data,
     plt.grid(grid_flag)
     return
 
+# FaaS-NFV multi-core scheduling
+x = [0, 10, 20, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99]
+y_base = [0, 131.8, 135.9, 144.0, 235.7, 237.8, 240.2, 243.4, 247.9, 334.5, 337.6, 339.4, 340.7, 342.2, 344.6, 352.3, 406.0]
+y_mp_32 = [0, 513.9, 527.1, 537.1, 1013.3, 1019.7, 1026.6, 1034.7, 1044.6, 1507.9, 1513.5, 1516.7, 1519.9, 1523.6, 1530.0, 1546.1, 1603.4]
+y_mp_4 = [0, 221.5, 429.5, 613.7, 793.9, 886.7, 977.4, 1078.2, 1178.3, 1248.3, 1339.7, 1441.2, 1535.2, 1625.3, 1719.8, 1821.7, 3166.1]
 
+x_label = 'Percentile (%)'
+y_label = 'Chain Latency (usec)'
+figure_base_title = 'The end-to-end latency distribution (BESS)'
+figure_mp32_title = 'The end-to-end latency distribution (Coorperative Sched, B=32)'
+figure_mp4_title = 'The end-to-end latency distribution (Coorperative Sched, B=4)'
+scatter_curve_plot(x, y_base, x_label, y_label, figure_base_title, 'b', False)
+scatter_curve_plot(x, y_mp_32, x_label, y_label, figure_mp32_title, 'r', False)
+scatter_curve_plot(x, y_mp_4, x_label, y_label, figure_mp4_title, 'g', False)
+plt.show()
+
+
+'''
 x = [1.804, 3.541, 3.704, 3.58, 3.932, 4.885, 6.52, 8.146, 10, 11.71]
 y = [i for i in range(1, 11)]
 x_label = 'Count of requests'
@@ -119,6 +136,7 @@ y_label = 'Peak queueing delay level'
 figure_title = 'Mapping from the request count to the peak queueing delay'
 scatter_curve_plot(x, y, x_label, y_label, figure_title, 'b', False)
 plt.show()
+'''
 
 '''
 x=[(10+20*i) for i in range(13)] + [350, 450, 650, 850, 1000]

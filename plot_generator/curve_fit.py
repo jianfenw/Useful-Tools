@@ -75,6 +75,30 @@ def scatter_curve_plot(x_data,
     plt.grid(True)
 
 
+# |y_data| is an list of tuple (data, color).
+def scatter_group_curve_plot(x_data,
+                       y_data_list,
+                       x_label="",
+                       y_label="",
+                       title="",
+                       yscale_log=False):
+    # Create the plot object
+    _, ax = plt.subplots()
+    # Plot the data, set the size (s), color and transparency (alpha)
+    ax.scatter([0], [0], s=10, marker='o', color='b', alpha=0.75)
+
+    for y_data,y_color in y_data_list:
+        ax.scatter(x_data, y_data, s=10, marker='x', color=y_color, alpha=0.75)
+        ax.plot(x_data, y_data, lw=1.0, color=y_color, alpha=1)
+
+    if yscale_log == True:
+        ax.set_yscale('log')
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.grid(True)
+
+
 def bar_plot(x_data,
              y_data,
              n_chains=4,
@@ -111,22 +135,86 @@ def bar_plot(x_data,
     plt.grid(grid_flag)
     return
 
+
+# FaaS-NFV latency
+y = []
+x = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
+cc_deque = [120.7, 322.5, 438.9, 641.4, 762.8, 961.2, 1089.4, 1280.3, 1461.6, 1615.0]
+y += [(cc_deque, 'k')]
+
+sc_chacha_1 = [37.3, 38.4, 38.4, 38.4, 38.5, 38.5, 38.5, 38.5, 38.6, 51.6]
+sc_chacha_2 = [75.0, 77.3, 77.4, 77.4, 77.4, 77.5, 77.5, 77.5, 77.6, 89.9]
+sc_chacha_3 = [111.4, 114.7, 114.8, 114.8, 114.8, 114.9, 114.9, 115.0, 115.1, 128.0]
+y += [(sc_chacha_1, 'b'), (sc_chacha_2, 'b'), (sc_chacha_3, 'b')]
+
+cc_chacha_1 = [167.3, 369.4, 486.4, 691.6, 814.6, 1013.3, 1149.0, 1335.1, 1523.0, 1654.1]
+cc_chacha_2 = [205.0, 405.9, 523.9, 728.8, 851.0, 1051.0, 1180.8, 1372.5, 1560.2, 1679.6]
+cc_chacha_3 = [247.6, 454.2, 573.5, 783.6, 907.7, 1112.7, 1243.2, 1440.5, 1632.1, 1734.1]
+y += [(cc_chacha_1, 'g'), (cc_chacha_2, 'g'), (cc_chacha_3, 'g')]
+
+figure_sc_chacha_1 = "Cross-core Latency Breakdown (Medium Load)"
+
+x_label = 'Percentile (%)'
+y_label = 'Latency (usec)'
+
+scatter_group_curve_plot(x, y, x_label, y_label, figure_sc_chacha_1, False)
+
+plt.show()
+
+
+'''
+# FaaS-NFV latency
+y = []
+x = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
+cc_deque = [1.3, 1.4, 1.6, 113.2, 118.4, 121.3, 213.4, 217.4, 222.3, 337.1]
+y += [(cc_deque, 'k')]
+
+sc_chacha_1 = [36.1, 37.2, 37.4, 38.4, 38.5, 38.5, 48.5, 50.5, 51.0, 52.4]
+sc_chacha_2 = [72.1, 72.2, 76.6, 76.7, 76.8, 76.8, 84.5, 89.0, 89.2, 93.8]
+sc_chacha_3 = [108.4, 108.6, 115.3, 115.4, 115.5, 115.6, 120.8, 127.6, 128.0, 136.5]
+y += [(sc_chacha_1, 'b'), (sc_chacha_2, 'b'), (sc_chacha_3, 'b')]
+
+dc_chacha_1 = [40.4, 41.8, 42.6, 43.0, 43.5, 45.6, 51.6, 54.0, 55.1, 63.0]
+dc_chacha_2 = [76.3, 78.9, 80.4, 81.2, 82.0, 83.9, 87.3, 92.0, 93.4, 102.7]
+dc_chacha_3 = [111.5, 114.4, 117.9, 119.0, 120.1, 122.4, 124.2, 129.9, 131.0, 140.4]
+y += [(dc_chacha_1, 'r'), (dc_chacha_2, 'r'), (dc_chacha_3, 'r')]
+
+cc_chacha_1 = [54.1, 55.8, 58.9, 157.6, 161.9, 165.9, 256.9, 260.6, 264.9, 346.0]
+cc_chacha_2 = [92.3, 94.4, 101.3, 196.2, 199.7, 204.8, 295.5, 298.2, 301.8, 348.5]
+cc_chacha_3 = [129.8, 134.0, 137.7, 235.4, 239.1, 245.5, 337.1, 339.9, 343.3, 358.2]
+y += [(cc_chacha_1, 'g'), (cc_chacha_2, 'g'), (cc_chacha_3, 'g')]
+
+figure_sc_chacha_1 = "Run-to-completion v.s. Cross-core CHACHA"
+
+x_label = 'Percentile (%)'
+y_label = 'Latency (usec)'
+
+scatter_group_curve_plot(x, y, x_label, y_label, figure_sc_chacha_1, False)
+
+plt.show()
+'''
+
+'''
 # FaaS-NFV multi-core scheduling
 x = [0, 10, 20, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99]
 y_base = [0, 131.8, 135.9, 144.0, 235.7, 237.8, 240.2, 243.4, 247.9, 334.5, 337.6, 339.4, 340.7, 342.2, 344.6, 352.3, 406.0]
 y_mp_32 = [0, 513.9, 527.1, 537.1, 1013.3, 1019.7, 1026.6, 1034.7, 1044.6, 1507.9, 1513.5, 1516.7, 1519.9, 1523.6, 1530.0, 1546.1, 1603.4]
 y_mp_4 = [0, 221.5, 429.5, 613.7, 793.9, 886.7, 977.4, 1078.2, 1178.3, 1248.3, 1339.7, 1441.2, 1535.2, 1625.3, 1719.8, 1821.7, 3166.1]
+y_mp_32_opt = [0, 134.5, 139.6, 147.5, 255.5, 258.3, 260.9, 263.9, 267.9, 361.7, 366.6, 369.4, 371.8, 374.5, 377.8, 384.5, 405.6]
 
 x_label = 'Percentile (%)'
 y_label = 'Chain Latency (usec)'
 figure_base_title = 'The end-to-end latency distribution (BESS)'
 figure_mp32_title = 'The end-to-end latency distribution (Coorperative Sched, B=32)'
 figure_mp4_title = 'The end-to-end latency distribution (Coorperative Sched, B=4)'
+figure_mp4_opt_title = 'The end-to-end latency distribution (Coorperative Sched, B=32)'
 scatter_curve_plot(x, y_base, x_label, y_label, figure_base_title, 'b', False)
 scatter_curve_plot(x, y_mp_32, x_label, y_label, figure_mp32_title, 'r', False)
 scatter_curve_plot(x, y_mp_4, x_label, y_label, figure_mp4_title, 'g', False)
-plt.show()
+scatter_curve_plot(x, y_mp_32_opt, x_label, y_label, figure_mp4_opt_title, 'k', False)
 
+plt.show()
+'''
 
 '''
 x = [1.804, 3.541, 3.704, 3.58, 3.932, 4.885, 6.52, 8.146, 10, 11.71]

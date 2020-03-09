@@ -1,110 +1,10 @@
 
 import math
-import random
+from event_arrival import *
+from task_queue import Task, TaskQueue
 
 # All times are counted in ns.
-
-DEFAULT_BATCH_SIZE = 32
-SYSTEM_RUNTIME = 10 ** 9
-
-
-# Returns an inter-arrival time (ns) of a random process.
-# |arrival_rate| is represented in Packet Per Second.
-# Pattern must be 'exponential' or 'uniform'
-def next_arrival_period(pattern='exponential', arrival_rate=1.0):
-	if pattern == 'exponential':
-		return int(-math.log(1.0 - random.random()) * 10**9 / arrival_rate)
-	if pattern == 'uniform':
-		return int(1 * 10**9 / arrival_rate)
-
-def next_sevice_period(avg_service_time=100):
-	return int(avg_service_time)
-
-
-# A task is an NFV processing associated with a packet.
-class Task(object):
-	_arrival_time = None
-	_service_time = None
-	_depart_time = None
-	_delay_slo = None
-	_ddl = None
-	_slack = None
-
-	def __init__(self, arrival_time, service_time, delay_slo):
-		self._arrival_time = arrival_time
-		self._service_time = service_time
-		self._delay_slo = delay_slo
-		self._ddl = arrival_time + delay_slo
-		self._slack = self._ddl - service_time
-
-	# Returns true if the task violates its latency SLOs.
-	def is_violating_slo(self, depart_time):
-		# assert(depart_time >= _arrival_time)
-		return (depart_time > self._ddl)
-
-	def service_time(self):
-		return self._service_time
-
-
-class TaskQueue(object):
-	_task_name = ""
-	_packets_queue = []
-
-	_arrival_rate = None
-	_service_time = None
-	_delay_slo = None
-
-	_packets_counter = 0;
-	_slo_violation_counter = 0
-	_cpu_usage_counter = 0
-
-	_last_arrival_time = 0
-
-	def __init__(self, task_name):
-		self._task_name = task_name
-		self._packets_queue = []
-		self._last_arrival_time = 0
-
-	def is_empty(self):
-		return (len(self._packets_queue) == 0)
-
-	def set_arrival_rate(self, arrival_rate):
-		self._arrival_rate = arrival_rate
-
-	def set_service_time(self, service_time):
-		self._service_time = service_time
-
-	def set_delay_slo(self, delay_slo):
-		self._delay_slo = delay_slo
-
-	def enqueue_packet(self, task):
-		self._packets_queue.append(task)
-		self._last_arrival_time = task._arrival_time
-
-	# This function picks a batch of packets from the task queue.
-	def process_batch(self, current_time):
-		batch = []
-		while len(self._packets_queue) > 0 and len(batch) < DEFAULT_BATCH_SIZE:
-			# The oldest packet has not 'arrived' yet.
-			if self._packets_queue[0]._arrival_time > current_time:
-				break
-
-			batch.append(self._packets_queue.pop(0))
-
-		batch_service_time = 0
-		for packet in batch:
-			batch_service_time += packet.service_time()
-
-		return batch, batch_service_time
-
-	def packets_counter(self):
-		return self._packets_counter
-
-	def slo_violation_counter(self):
-		return self._slo_violation_counter
-
-	def cpu_usage_counter(self):
-		return self._cpu_usage_counter
+SYSTEM_RUNTIME = 5 * 10 ** 9
 
 
 class ExperimentalScheduler(object):
@@ -134,23 +34,14 @@ class ExperimentalScheduler(object):
 		self._schedulable_tasks[task._task_name] = task
 
 	def pre_scheduling(self):
-		START_TIME = self._wall_clock_time - self._epoch_ns
-		if START_TIME < 0:
-			START_TIME = 0
+		# The start and end timestamp of the current epoch.
+		START_TIME = self._wall_clock_time
+		END_TIME = self._wall_clock_time + self._epoch_ns
 
-		# Refills packets for all existing tasks.
+		# Refills packets that arrives between |START_TIME| and
+		# |END_TIME|.
 		for task_name, task in self._schedulable_tasks.items():
-			# assert(task._arrival_rate != None)
-			# The start point of |task|.
-			now = max(task._last_arrival_time, START_TIME)
-
-			while now <= self._wall_clock_time + self._epoch_ns:
-				random_time = next_arrival_period(pattern='exponential', arrival_rate=task._arrival_rate)
-				now += random_time
-				new = Task(now, \
-					next_sevice_period(task._service_time), task._delay_slo)
-
-				task.enqueue_packet(new)
+			task.simulate_packet_arrivals(START_TIME, END_TIME)
 
 	def has_packets_left(self):
 		for task_name, task in self._schedulable_tasks.items():
@@ -158,9 +49,9 @@ class ExperimentalScheduler(object):
 				return True
 		return False
 
-	# This is the core scheduling algorithm.
-	# Dynamically reschedule all existing tasks according to their queue info
-	# and the processing time.
+	# This is the core dynamic scheduling algorithm.
+	# Dynamically reschedule all existing tasks according to 
+	# queue info and the processing time.
 	def on_scheduling(self):
 		core = 0
 		for task_name, task in self._schedulable_tasks.items():
@@ -168,10 +59,13 @@ class ExperimentalScheduler(object):
 				self._scheduling_scheme[core] = [task]
 				core += 1
 
+	# This is the per-core task scheduling algorithm.
+	# Least Slack First (LSF) or Earliest Deadline First (EDF).
 	def post_scheduling(self):
 		START_TIME = self._wall_clock_time
 
 		for core, tasks in self._scheduling_scheme.items():
+			# |now| is a per-core local time.
 			now = START_TIME
 
 			# Runs |tasks| on |core| until the end of this epoch.
@@ -180,14 +74,17 @@ class ExperimentalScheduler(object):
 				batch, batch_time = None, 0
 				for task in tasks:
 					batch, batch_time = task.process_batch(now)
-					# Picks the first one queue that has packets.
+					# Picks the first queue that has packets.
 					if batch_time > 0:
 						break
 
 				# No packets available.
 				if len(batch) == 0:
-					break
+					now += 500
+					continue
+
 				now += batch_time
+				#print "batch size = %d; batch time = %d" %(len(batch), batch_time)
 
 				for packet in batch:
 					if packet.is_violating_slo(now):
@@ -229,9 +126,9 @@ def main():
 	sched = ExperimentalScheduler(16)
 
 	task0 = TaskQueue("CHACHA")
-	# 1s: 100000 tasks. Each service time < 10000 ns;
-	task0.set_arrival_rate(10000)
-	task0.set_service_time(500)
+	# 1s: 100000 tasks. Each service time < 1000 ns;
+	task0.set_arrival_rate(100000)
+	task0.set_service_time(1000)
 	task0.set_delay_slo(5000000)
 
 	task1 = TaskQueue("ACL -> NAT")
@@ -239,14 +136,16 @@ def main():
 	task1.set_service_time(100)
 	task1.set_delay_slo(5000000)
 
+	"""
 	task2 = TaskQueue("ACL -> UrlFilter")
 	task2.set_arrival_rate(10000)
 	task2.set_service_time(800)
 	task2.set_delay_slo(5000000)
+	"""
 
 	sched.add_task(task0)
 	sched.add_task(task1)
-	sched.add_task(task2)
+	#sched.add_task(task2)
 
 	while sched._wall_clock_time < SYSTEM_RUNTIME:
 		sched.pre_scheduling()

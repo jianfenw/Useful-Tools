@@ -45,7 +45,7 @@ class ExperimentalScheduler(object):
 
 	def has_packets_left(self):
 		for task_name, task in self._schedulable_tasks.items():
-			if not task.is_empty():
+			if not task.empty():
 				return True
 		return False
 
@@ -55,7 +55,7 @@ class ExperimentalScheduler(object):
 	def on_scheduling(self):
 		core = 0
 		for task_name, task in self._schedulable_tasks.items():
-			if not task.is_empty():
+			if not task.empty():
 				self._scheduling_scheme[core] = [task]
 				core += 1
 

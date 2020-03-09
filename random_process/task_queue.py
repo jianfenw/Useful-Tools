@@ -53,7 +53,7 @@ class TaskQueue(object):
         self._packets_queue = []
         self._last_arrival_time = 0
 
-    def is_empty(self):
+    def empty(self):
         return (len(self._packets_queue) == 0)
 
     def set_arrival_rate(self, arrival_rate):
@@ -110,8 +110,33 @@ class TaskQueue(object):
         return self._cpu_usage_counter
 
 
+def test_taskqueue_process_batch():
+    NUM_PACKETS = 65
+    arrival_time = 0
+    service_times = [100 for i in range(32)] + \
+        [2000 for i in range(32)] + \
+        [1000 for i in range(1)]
+    delay_slo = 1000000
+    assert(len(service_times) == NUM_PACKETS)
+
+    taskq = TaskQueue("ACL")
+    for i in range(NUM_PACKETS):
+        new_packet = Task(arrival_time, service_times[i], delay_slo)
+        taskq.enqueue_packet(new_packet)
+
+    processing_batch_results = [(32, 3200), (32, 64000), (1, 1000)]
+    batch_size_time = []
+    while not taskq.empty():
+        batch, batch_time = taskq.process_batch(arrival_time)
+        batch_size_time.append((len(batch), batch_time))
+
+    assert(batch_size_time == processing_batch_results)
+
+
 def run_all_tests():
-    pass
+    test_taskqueue_process_batch()
+
+    print "Pass all task/taskqueue tests."
 
 if __name__ == '__main__':
     run_all_tests()

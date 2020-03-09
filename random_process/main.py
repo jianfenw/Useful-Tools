@@ -136,17 +136,17 @@ def main():
 	task0 = TaskQueue("CHACHA")
 	# 1s: 100000 tasks. Each service time < 1000 ns;
 	task0.set_arrival_rate(1000000)
-	task0.set_service_time(1000)
+	task0.set_service_time(20000)
 	task0.set_delay_slo(5000000)
 
 	task1 = TaskQueue("ACL -> NAT")
 	task1.set_arrival_rate(100000)
-	task1.set_service_time(100)
+	task1.set_service_time(5000)
 	task1.set_delay_slo(1000000)
 
 	task2 = TaskQueue("ACL -> UrlFilter")
 	task2.set_arrival_rate(100000)
-	task2.set_service_time(800)
+	task2.set_service_time(10000)
 	task2.set_delay_slo(2000000)
 
 	sched.add_task(task0)

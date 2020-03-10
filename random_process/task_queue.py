@@ -1,5 +1,6 @@
 
 import sys
+import copy
 from event_arrival import *
 
 DEFAULT_BATCH_SIZE = 32
@@ -27,7 +28,6 @@ class Task(object):
         if depart_time > self._ddl:
             print "Y d=%d; arv=%d; ddl=%d;" %(depart_time, self._arrival_time, self._ddl)
         """
-
         return (depart_time > self._ddl)
 
     def service_time(self):
@@ -47,12 +47,15 @@ class TaskQueue(object):
     _slo_violation_counter = 0
     _cpu_usage_counter = 0
 
+    _packet_delays = []
+
     _last_arrival_time = 0
 
     def __init__(self, task_name):
         self._task_name = task_name
         self._packets_queue = []
         self._last_arrival_time = 0
+        self._packet_delays = []
 
     def size(self):
         return len(self._packets_queue)
@@ -113,6 +116,10 @@ class TaskQueue(object):
         batch_service_time = 0
         for packet in batch:
             batch_service_time += packet.service_time()
+
+        for packet in batch:
+            self._packet_delays.append( \
+                current_time + batch_service_time - packet._arrival_time)
 
         return batch, batch_service_time
 

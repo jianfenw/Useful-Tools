@@ -3,7 +3,7 @@ import copy
 import math
 from event_arrival import *
 from task_queue import Task, TaskQueue
-from percent_plot import scatter_group_curve_plot
+from plotting import scatter_group_curve_plot
 
 
 # All times are counted in ns.
@@ -61,8 +61,8 @@ class ExperimentalScheduler(object):
     # Dynamically reschedule all existing tasks according to 
     # queue info and the processing time.
     def on_scheduling(self):
-        #self.on_scheduling_naive_packing()
-        self.on_scheduling_naive_dedicating()
+        self.on_scheduling_naive_packing()
+        #self.on_scheduling_naive_dedicating()
 
     # Naive dedicating.
     def on_scheduling_naive_dedicating(self):

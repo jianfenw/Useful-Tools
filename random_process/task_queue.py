@@ -39,14 +39,22 @@ class TaskQueue(object):
     _task_name = ""
     _packets_queue = []
 
-    _arrival_rate = None
-    _service_time = None
-    _delay_slo = None
+    _arrival_rate = 1
+    _service_time = 1
+    _delay_slo = 1
 
+    # Determined by |_service_time| and |_delay_slo|.
+    _max_queue_length = 0
+    _high_queue_length = 0
+    _medium_queue_length = 0
+    _low_queue_length = 0
+
+    # Performance counters.
     _packets_counter = 0;
     _slo_violation_counter = 0
     _cpu_usage_counter = 0
 
+    # Delay samples.
     _packet_delays = []
 
     _last_arrival_time = 0
@@ -56,6 +64,9 @@ class TaskQueue(object):
         self._packets_queue = []
         self._last_arrival_time = 0
         self._packet_delays = []
+
+    def __eq__(self, other):
+        return self._task_name == other._task_name
 
     def size(self):
         return len(self._packets_queue)
@@ -68,9 +79,27 @@ class TaskQueue(object):
 
     def set_service_time(self, service_time):
         self._service_time = service_time
+        self.update_max_queue_length()
 
     def set_delay_slo(self, delay_slo):
         self._delay_slo = delay_slo
+        self.update_max_queue_length()
+
+    def update_max_queue_length(self):
+        self._max_queue_length = self._delay_slo / self._service_time
+        self._high_queue_length = int(0.8 * self._max_queue_length)
+        self._medium_queue_length = int(0.5 * self._max_queue_length)
+        self._low_queue_length = int(0.2 * self._max_queue_length)
+
+    def get_queue_level():
+        if self.size() > self._high_queue_length:
+            return 3
+        elif self.size() > self._medium_queue_length:
+            return 2
+        elif self.size() > self._low_queue_length:
+            return 1
+
+        return 0
 
     def simulate_packet_arrivals(self, start, end):
         now = max(self._last_arrival_time, start)

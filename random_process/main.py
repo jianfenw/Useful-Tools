@@ -1,6 +1,7 @@
 
-import copy
+import argparse
 import math
+import copy
 from event_arrival import *
 from task_queue import Task, TaskQueue
 from plotting import scatter_group_curve_plot
@@ -61,8 +62,9 @@ class ExperimentalScheduler(object):
     # Dynamically reschedule all existing tasks according to 
     # queue info and the processing time.
     def on_scheduling(self):
-        self.on_scheduling_naive_packing()
-        #self.on_scheduling_naive_dedicating()
+        self.on_scheduling_naive_dedicating()
+        #self.on_scheduling_naive_packing()
+        #self.on_scheduling_dynamic_packing()
 
     # Naive dedicating.
     def on_scheduling_naive_dedicating(self):
@@ -80,14 +82,15 @@ class ExperimentalScheduler(object):
 
     # Dynamic packing.
     def on_scheduling_dynamic_packing(self):
-        pass
+        for task_name, task in self._schedulable_tasks.items():
+            continue
 
 
     # This includes the per-core task scheduling process and
     # the packet-level accounting process.
     def post_scheduling(self):
-        self.post_scheduling_edf()
         #self.post_scheduling_greedy()
+        self.post_scheduling_edf()
 
         self._cpu_usage_counter += len(self._scheduling_scheme)
         self._epoch_counter += 1
@@ -222,12 +225,12 @@ def main():
     task0.set_delay_slo(5000000)
 
     task1 = TaskQueue("ACL -> NAT")
-    task1.set_arrival_rate(10000)
-    task1.set_service_time(5000)
+    task1.set_arrival_rate(900000)
+    task1.set_service_time(1000)
     task1.set_delay_slo(1000000)
 
     task2 = TaskQueue("ACL -> UrlFilter")
-    task2.set_arrival_rate(20000)
+    task2.set_arrival_rate(100000)
     task2.set_service_time(10000)
     task2.set_delay_slo(2000000)
 

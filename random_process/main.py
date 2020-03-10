@@ -62,8 +62,9 @@ class ExperimentalScheduler(object):
     # Dynamically reschedule all existing tasks according to 
     # queue info and the processing time.
     def on_scheduling(self):
-        self.on_scheduling_naive_dedicating()
+        #self.on_scheduling_naive_dedicating()
         #self.on_scheduling_naive_packing()
+        self.on_scheduling_best_packing()
         #self.on_scheduling_dynamic_packing()
 
     # Naive dedicating.
@@ -75,16 +76,52 @@ class ExperimentalScheduler(object):
             core += 1
 
     # Naive packing.
-    def on_scheduling_naive_packing(self):  
-        self._scheduling_scheme = {0: []}
+    def on_scheduling_naive_packing(self):
+        self._scheduling_scheme = {}
+        curr_core = 0
+        curr_share = 0
         for task_name, task in self._schedulable_tasks.items():
-            self._scheduling_scheme[0].append(task)
+            task_share = task.share()
+            if curr_share + task_share > 1000:
+                curr_core += 1
+            self._assign(curr_core, task)
+            curr_share += task_share
+
+    # Best Packing.
+    def on_scheduling_best_packing(self):
+        self._scheduling_scheme = {}
+        task_shares = []
+        for task_name, task in self._schedulable_tasks.items():
+            task_shares.append((task.share(), task))
+        task_shares.sort(reverse=True)
+
+        cpu_shares = []
+        for task_share, task in task_shares:
+            assigned = False
+            for i in range(len(cpu_shares)):
+                if cpu_shares[i] + task_share < 1000:
+                    cpu_shares[i] += task_share
+                    self._assign(i, task)
+                    assigned = True
+                    break
+
+            if not assigned:
+                cpu_shares.append(task_share)
+                index = len(cpu_shares) - 1
+                self._assign(index, task)
+
 
     # Dynamic packing.
+    # Packing jobs with mininum number of cores.
     def on_scheduling_dynamic_packing(self):
         for task_name, task in self._schedulable_tasks.items():
             continue
 
+    def _assign(self, core, task):
+        if core not in self._scheduling_scheme:
+            self._scheduling_scheme[core] = [task]
+        else:
+            self._scheduling_scheme[core].append(task)
 
     # This includes the per-core task scheduling process and
     # the packet-level accounting process.
@@ -140,6 +177,8 @@ class ExperimentalScheduler(object):
                         earliest_ddl = tmp
                         selected_task = task
 
+                #print selected_task._task_name, selected_task.size(now)
+
                 # Operates on |selected_task|.
                 batch, batch_time = selected_task.process_batch(now)
                 if len(batch) == 0:
@@ -147,7 +186,6 @@ class ExperimentalScheduler(object):
                     continue
 
                 now += batch_time
-
                 for packet in batch:
                     if packet.is_violating_slo(now):
                         selected_task._slo_violation_counter += 1
@@ -225,7 +263,7 @@ def main():
     task0.set_delay_slo(5000000)
 
     task1 = TaskQueue("ACL -> NAT")
-    task1.set_arrival_rate(900000)
+    task1.set_arrival_rate(800000)
     task1.set_service_time(1000)
     task1.set_delay_slo(1000000)
 

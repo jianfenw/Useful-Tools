@@ -68,11 +68,20 @@ class TaskQueue(object):
     def __eq__(self, other):
         return self._task_name == other._task_name
 
-    def size(self):
-        return len(self._packets_queue)
+    def size(self, now):
+        count = 0
+        for packet in self._packets_queue:
+            if packet._arrival_time <= now:
+                count += 1
+            else:
+                break
+        return count
 
     def empty(self):
         return (len(self._packets_queue) == 0)
+
+    def share(self):
+        return (self._arrival_rate * self._service_time / 1000000)
 
     def set_arrival_rate(self, arrival_rate):
         self._arrival_rate = arrival_rate
@@ -184,10 +193,22 @@ def test_taskqueue_process_batch():
 
     assert(batch_size_time == processing_batch_results)
 
+def test_taskqueue_share():
+    taskq = TaskQueue("ACL")
+
+    taskq.set_service_time(1000)
+    taskq.set_arrival_rate(1000000)
+    assert(1000 == taskq.share())
+
+    taskq.set_service_time(100)
+    taskq.set_arrival_rate(500000)
+    assert(taskq.share() == 50)
+
 
 def run_all_tests():
     test_taskqueue_process_batch()
 
+    test_taskqueue_share()
     print "Pass all task/taskqueue tests."
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 
+import sys
 from event_arrival import *
 
 DEFAULT_BATCH_SIZE = 32
@@ -53,6 +54,9 @@ class TaskQueue(object):
         self._packets_queue = []
         self._last_arrival_time = 0
 
+    def size(self):
+        return len(self._packets_queue)
+
     def empty(self):
         return (len(self._packets_queue) == 0)
 
@@ -83,6 +87,18 @@ class TaskQueue(object):
     def enqueue_packet(self, task):
         self._packets_queue.append(task)
         self._last_arrival_time = task._arrival_time
+
+    def peek_earliest_deadline(self):
+        if len(self._packets_queue) > 0:
+            return self._packets_queue[0]._ddl
+
+        return sys.maxint
+
+    def peek_least_slack(self):
+        if len(self._packets_queue) > 0:
+            return self._packets_queue[0]._slack
+
+        return sys.maxint
 
     # This function picks a batch of packets from the task queue.
     def process_batch(self, current_time):

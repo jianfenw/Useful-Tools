@@ -9,11 +9,14 @@ SYSTEM_RUNTIME = 5 * 10 ** 9
 
 class ExperimentalScheduler(object):
 	_CPU_CORES = None
+
+	# Task names to TaskQueue.
 	_schedulable_tasks = {}
+
 	# |_epoch_ns| is the minimal time granularity of rescheduling tasks.
 	_epoch_ns = 10000000
 
-	# The current scheduling scheme.
+	# The current scheduling scheme. Cores to groups of TaskQueues.
 	_scheduling_scheme = {}
 
 	# Counts the number of CPU * epoch.
@@ -53,28 +56,41 @@ class ExperimentalScheduler(object):
 	# Dynamically reschedule all existing tasks according to 
 	# queue info and the processing time.
 	def on_scheduling(self):
-		"""
-		# Naive dedicating.
+		self.on_scheduling_naive_packing()
+
+	# Naive dedicating.
+	def on_scheduling_naive_dedicating(self):
+		self._scheduling_scheme = {}
 		core = 0
 		for task_name, task in self._schedulable_tasks.items():
 			self._scheduling_scheme[core] = [task]
 			core += 1
-		"""
 
-		# Naive packing.
-		self._scheduling_scheme[0] = []
+	# Naive packing.
+	def on_scheduling_naive_packing(self):	
+		self._scheduling_scheme = {0: []}
 		for task_name, task in self._schedulable_tasks.items():
 			self._scheduling_scheme[0].append(task)
 
+	# Dynamic packing.
+	def on_scheduling_dynamic_packing(self):
+		pass
 
-	# This is the per-core task scheduling algorithm.
-	# Least Slack First (LSF) or Earliest Deadline First (EDF).
+
+	# This includes the per-core task scheduling process and
+	# the packet-level accounting process.
 	def post_scheduling(self):
-		START_TIME = self._wall_clock_time
+		#self.post_scheduling_edf()
+		self.post_scheduling_greedy()
 
+		self._cpu_usage_counter += len(self._scheduling_scheme)
+		self._epoch_counter += 1
+		self._wall_clock_time += self._epoch_ns
+
+	def post_scheduling_greedy(self):
 		for core, tasks in self._scheduling_scheme.items():
 			# |now| is a per-core local time.
-			now = START_TIME
+			now = self._wall_clock_time
 
 			# Runs |tasks| on |core| until the end of this epoch.
 			while now < self._wall_clock_time + self._epoch_ns:
@@ -92,17 +108,48 @@ class ExperimentalScheduler(object):
 					continue
 
 				now += batch_time
-				#print "batch size = %d; batch time = %d" %(len(batch), batch_time)
+				#print "Batch size = %d; Batch time = %d" %(len(batch), batch_time)
 
 				for packet in batch:
 					if packet.is_violating_slo(now):
 						task._slo_violation_counter += 1
 				task._packets_counter += len(batch)
 
-		self._cpu_usage_counter += len(self._scheduling_scheme)
-		self._epoch_counter += 1
-		self._wall_clock_time += self._epoch_ns
+	# Earliest Deadline First (EDF).
+	def post_scheduling_edf(self):
+		for core, tasks in self._scheduling_scheme.items():
+			# |now| is a per-core local time.
+			now = self._wall_clock_time
 
+			while now < self._wall_clock_time + self._epoch_ns:
+				selected_task = tasks[0]
+				earliest_ddl = tasks[0].peek_earliest_deadline()
+
+				for i, task in enumerate(tasks[1:]):
+					tmp = task.peek_earliest_deadline()
+					if tmp < earliest_ddl:
+						earliest_ddl = tmp
+						selected_task = task
+
+				# Operates on |selected_task|.
+				batch, batch_time = selected_task.process_batch(now)
+				if len(batch) == 0:
+					now += 500
+					continue
+
+				now += batch_time
+
+				for packet in batch:
+					if packet.is_violating_slo(now):
+						selected_task._slo_violation_counter += 1
+				selected_task._packets_counter += len(batch)
+
+	# Least Slack First (LSF).
+	def post_scheduling_lsf(self):
+		pass
+
+
+	# Generates the statistics report.
 	def statistics_report(self):
 		total_packets = 0
 		total_slo_violations = 0
@@ -135,7 +182,7 @@ def main():
 
 	task0 = TaskQueue("CHACHA")
 	# 1s: 100000 tasks. Each service time < 1000 ns;
-	task0.set_arrival_rate(1000000)
+	task0.set_arrival_rate(100000)
 	task0.set_service_time(20000)
 	task0.set_delay_slo(5000000)
 
